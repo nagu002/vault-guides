@@ -28,13 +28,13 @@ function vault_to_network_address {
 
   case "$vault_node_name" in
     vault_1)
-      echo "http://172.31.26.119/:8200"
+      echo "http://172.31.20.162:8200"
       ;;
     vault_2)
-      echo "http://172.31.17.242:8200"
+      echo "http://172.31.23.121:8200"
       ;;
     vault_3)
-      echo "http://172.31.22.130:8200"
+      echo "http://172.31.28.187:8200"
       ;;
     vault_4)
       echo "http://127.0.0.4:8200"
@@ -44,17 +44,17 @@ function vault_to_network_address {
 
 # Create a helper function to address the first vault node
 function vault_1 {
-    (export VAULT_ADDR=http://172.31.26.119:8200 && vault "$@")
+    (export VAULT_ADDR=http://172.31.20.162:8200 && vault "$@")
 }
 
 # Create a helper function to address the second vault node
 function vault_2 {
-    (export VAULT_ADDR=http://172.31.17.242:8200 && vault "$@")
+    (export VAULT_ADDR=http://172.31.23.121:8200 && vault "$@")
 }
 
 # Create a helper function to address the third vault node
 function vault_3 {
-    (export VAULT_ADDR=http://172.31.22.130:8200 && vault "$@")
+    (export VAULT_ADDR=http://172.31.28.187:8200 && vault "$@")
 }
 
 # Create a helper function to address the fourth vault node
@@ -185,7 +185,7 @@ function clean {
     " - unseal / recovery keys" \
     ""
 
-  for loopback_address in "172.31.13.218" "172.31.22.130" "127.0.0.4" ; do
+  for loopback_address in "172.31.23.121" "172.31.28.187" "127.0.0.4" ; do
     loopback_exists=$(loopback_exists_at_address $loopback_address)
     if [[ $loopback_exists != "" ]] ; then
       printf "\n%s" \
@@ -305,16 +305,16 @@ function create_network {
   case "$os_name" in
     darwin)
       printf "\n%s" \
-      "[vault_2] Enabling local loopback on 172.31.17.242 (requires sudo)" \
+      "[vault_2] Enabling local loopback on 172.31.23.121 (requires sudo)" \
       ""
 
-      sudo ifconfig lo0 alias 172.31.17.242
+      sudo ifconfig lo0 alias 172.31.23.121
 
       printf "\n%s" \
-        "[vault_3] Enabling local loopback on 172.31.22.130 (requires sudo)" \
+        "[vault_3] Enabling local loopback on 172.31.28.187 (requires sudo)" \
         ""
 
-      sudo ifconfig lo0 alias 172.31.22.130
+      sudo ifconfig lo0 alias 172.31.28.187
 
       printf "\n%s" \
         "[vault_4] Enabling local loopback on 127.0.0.4 (requires sudo)" \
@@ -324,16 +324,16 @@ function create_network {
       ;;
     linux)
       printf "\n%s" \
-      "[vault_2] Enabling local loopback on 172.31.17.242 (requires sudo)" \
+      "[vault_2] Enabling local loopback on 172.31.23.121 (requires sudo)" \
       ""
 
-      sudo ip addr add 172.31.17.242/8 dev lo label lo:0
+      sudo ip addr add 172.31.23.121/8 dev lo label lo:0
 
       printf "\n%s" \
-        "[vault_3] Enabling local loopback on 172.31.10.91 (requires sudo)" \
+        "[vault_3] Enabling local loopback on 172.31.28.187 (requires sudo)" \
         ""
 
-      sudo ip addr add 172.31.22.130/8 dev lo label lo:1
+      sudo ip addr add 172.31.28.187/8 dev lo label lo:1
 
       printf "\n%s" \
         "[vault_4] Enabling local loopback on 127.0.0.4 (requires sudo)" \
@@ -357,10 +357,12 @@ function create_config {
   tee "$demo_home"/config-vault_1.hcl 1> /dev/null <<EOF
     storage "inmem" {}
     listener "tcp" {
-      address = "172.31.26.119:8200"
+      address = "172.31.20.162:8200"
       tls_disable = true
     }
-    disable_mlock = true
+  disable_mlock = true
+  api_addr = "http://172.31.20.162:8200"
+  cluster_addr = "http://172.31.20.162:8201"
 EOF
 
   printf "\n%s" \
@@ -378,12 +380,12 @@ EOF
     node_id = "vault_2"
   }
   listener "tcp" {
-    address = "172.31.17.242:8200"
-    cluster_address = "172.31.17.242:8201"
+    address = "172.31.23.121:8200"
+    cluster_address = "172.31.23.121:8201"
     tls_disable = true
   }
   seal "transit" {
-    address            = "http://172.31.26.119:8200"
+    address            = "http://172.31.20.162:8200"
     # token is read from VAULT_TOKEN env
     # token              = ""
     disable_renewal    = "false"
@@ -393,7 +395,9 @@ EOF
     mount_path         = "transit/"
   }
   disable_mlock = true
-  cluster_addr = "http://172.31.17.242:8201"
+   disable_mlock = true
+  api_addr = "http://172.31.20.162:8200"
+  cluster_addr = "http://172.31.23.121:8201"
 EOF
 
   printf "\n%s" \
@@ -411,12 +415,12 @@ EOF
     node_id = "vault_3"
   }
   listener "tcp" {
-    address = "172.31.22.130:8200"
-    cluster_address = "172.31.22.130:8201"
+    address = "172.31.28.187:8200"
+    cluster_address = "172.31.28.187:8201"
     tls_disable = true
   }
   seal "transit" {
-    address            = "http://172.31.26.119:8200"
+    address            = "http://172.31.20.162:8200"
     # token is read from VAULT_TOKEN env
     # token              = ""
     disable_renewal    = "false"
@@ -426,7 +430,9 @@ EOF
     mount_path         = "transit/"
   }
   disable_mlock = true
-  cluster_addr = "http://172.31.22.130:8201"
+  disable_mlock = true
+  api_addr = "http://172.31.20.162:8200"
+  cluster_addr = "http://172.31.28.187:8201"
 EOF
 
   printf "\n%s" \
@@ -449,7 +455,7 @@ EOF
     tls_disable = true
   }
   seal "transit" {
-    address            = "http://127.0.0.1:8200"
+    address            = "http://172.31.20.162:8200"
     # token is read from VAULT_TOKEN env
     # token              = ""
     disable_renewal    = "false"
@@ -471,6 +477,8 @@ function setup_vault_1 {
   printf "\n%s" \
     "[vault_1] initializing and capturing the unseal key and root token" \
     ""
+  VAULT_API_ADDR=http://172.31.20.162:8200 vault server -log-level=trace -config "$vault_config_file" > "$vault_log_file" 2>&1 &
+  while ! nc -w 1 localhost 8200 </dev/null; do sleep 1; done
   sleep 2s # Added for human readability
 
   INIT_RESPONSE=$(vault_1 operator init -format=json -key-shares 1 -key-threshold 1)
@@ -510,6 +518,8 @@ function setup_vault_2 {
   printf "\n%s" \
     "[vault_2] initializing and capturing the recovery key and root token" \
     ""
+  VAULT_API_ADDR=http://172.31.23.121:8200 vault server -log-level=trace -config "$vault_config_file" > "$vault_log_file" 2>&1 &
+  while ! nc -w 1 localhost 8200 </dev/null; do sleep 1; done
   sleep 2s # Added for human readability
 
   # Initialize the second node and capture its recovery keys and root token
