@@ -477,8 +477,6 @@ function setup_vault_1 {
   printf "\n%s" \
     "[vault_1] initializing and capturing the unseal key and root token" \
     ""
-  VAULT_API_ADDR=http://172.31.20.162:8200 vault server -log-level=trace -config "$vault_config_file" > "$vault_log_file" 2>&1 &
-  while ! nc -w 1 localhost 8200 </dev/null; do sleep 1; done
   sleep 2s # Added for human readability
 
   INIT_RESPONSE=$(vault_1 operator init -format=json -key-shares 1 -key-threshold 1)
@@ -518,8 +516,6 @@ function setup_vault_2 {
   printf "\n%s" \
     "[vault_2] initializing and capturing the recovery key and root token" \
     ""
-  VAULT_API_ADDR=http://172.31.23.121:8200 vault server -log-level=trace -config "$vault_config_file" > "$vault_log_file" 2>&1 &
-  while ! nc -w 1 localhost 8200 </dev/null; do sleep 1; done
   sleep 2s # Added for human readability
 
   # Initialize the second node and capture its recovery keys and root token
