@@ -28,13 +28,13 @@ function vault_to_network_address {
 
   case "$vault_node_name" in
     vault_1)
-      echo "http://172.31.20.162:8200"
+      echo "http://127.0.0.1:8200"
       ;;
     vault_2)
-      echo "http://172.31.23.121:8200"
+      echo "http://127.0.0.2:8200"
       ;;
     vault_3)
-      echo "http://172.31.28.187:8200"
+      echo "http://127.0.0.3:8200"
       ;;
     vault_4)
       echo "http://127.0.0.4:8200"
@@ -44,17 +44,17 @@ function vault_to_network_address {
 
 # Create a helper function to address the first vault node
 function vault_1 {
-    (export VAULT_ADDR=http://172.31.20.162:8200 && vault "$@")
+    (export VAULT_ADDR=http://127.0.0.1:8200 && vault "$@")
 }
 
 # Create a helper function to address the second vault node
 function vault_2 {
-    (export VAULT_ADDR=http://172.31.23.121:8200 && vault "$@")
+    (export VAULT_ADDR=http://127.0.0.2:8200 && vault "$@")
 }
 
 # Create a helper function to address the third vault node
 function vault_3 {
-    (export VAULT_ADDR=http://172.31.28.187:8200 && vault "$@")
+    (export VAULT_ADDR=http://127.0.0.3:8200 && vault "$@")
 }
 
 # Create a helper function to address the fourth vault node
@@ -185,7 +185,7 @@ function clean {
     " - unseal / recovery keys" \
     ""
 
-  for loopback_address in "172.31.23.121" "172.31.28.187" "127.0.0.4" ; do
+  for loopback_address in "127.0.0.2" "127.0.0.3" "127.0.0.4" ; do
     loopback_exists=$(loopback_exists_at_address $loopback_address)
     if [[ $loopback_exists != "" ]] ; then
       printf "\n%s" \
@@ -305,16 +305,16 @@ function create_network {
   case "$os_name" in
     darwin)
       printf "\n%s" \
-      "[vault_2] Enabling local loopback on 172.31.23.121 (requires sudo)" \
+      "[vault_2] Enabling local loopback on 127.0.0.2 (requires sudo)" \
       ""
 
-      sudo ifconfig lo0 alias 172.31.23.121
+      sudo ifconfig lo0 alias 127.0.0.2
 
       printf "\n%s" \
-        "[vault_3] Enabling local loopback on 172.31.28.187 (requires sudo)" \
+        "[vault_3] Enabling local loopback on 127.0.0.3 (requires sudo)" \
         ""
 
-      sudo ifconfig lo0 alias 172.31.28.187
+      sudo ifconfig lo0 alias 127.0.0.3
 
       printf "\n%s" \
         "[vault_4] Enabling local loopback on 127.0.0.4 (requires sudo)" \
@@ -324,16 +324,16 @@ function create_network {
       ;;
     linux)
       printf "\n%s" \
-      "[vault_2] Enabling local loopback on 172.31.23.121 (requires sudo)" \
+      "[vault_2] Enabling local loopback on 127.0.0.2 (requires sudo)" \
       ""
 
-      sudo ip addr add 172.31.23.121/8 dev lo label lo:0
+      sudo ip addr add 127.0.0.2/8 dev lo label lo:0
 
       printf "\n%s" \
-        "[vault_3] Enabling local loopback on 172.31.28.187 (requires sudo)" \
+        "[vault_3] Enabling local loopback on 127.0.0.3 (requires sudo)" \
         ""
 
-      sudo ip addr add 172.31.28.187/8 dev lo label lo:1
+      sudo ip addr add 127.0.0.3/8 dev lo label lo:1
 
       printf "\n%s" \
         "[vault_4] Enabling local loopback on 127.0.0.4 (requires sudo)" \
@@ -357,12 +357,10 @@ function create_config {
   tee "$demo_home"/config-vault_1.hcl 1> /dev/null <<EOF
     storage "inmem" {}
     listener "tcp" {
-      address = "172.31.20.162:8200"
+      address = "127.0.0.1:8200"
       tls_disable = true
     }
-  disable_mlock = true
-  api_addr = "http://172.31.20.162:8200"
-  cluster_addr = "http://172.31.20.162:8201"
+    disable_mlock = true
 EOF
 
   printf "\n%s" \
@@ -380,12 +378,12 @@ EOF
     node_id = "vault_2"
   }
   listener "tcp" {
-    address = "172.31.23.121:8200"
-    cluster_address = "172.31.23.121:8201"
+    address = "127.0.0.2:8200"
+    cluster_address = "127.0.0.2:8201"
     tls_disable = true
   }
   seal "transit" {
-    address            = "http://172.31.20.162:8200"
+    address            = "http://127.0.0.1:8200"
     # token is read from VAULT_TOKEN env
     # token              = ""
     disable_renewal    = "false"
@@ -395,9 +393,7 @@ EOF
     mount_path         = "transit/"
   }
   disable_mlock = true
-   disable_mlock = true
-  api_addr = "http://172.31.20.162:8200"
-  cluster_addr = "http://172.31.23.121:8201"
+  cluster_addr = "http://127.0.0.2:8201"
 EOF
 
   printf "\n%s" \
@@ -415,12 +411,12 @@ EOF
     node_id = "vault_3"
   }
   listener "tcp" {
-    address = "172.31.28.187:8200"
-    cluster_address = "172.31.28.187:8201"
+    address = "127.0.0.3:8200"
+    cluster_address = "127.0.0.3:8201"
     tls_disable = true
   }
   seal "transit" {
-    address            = "http://172.31.20.162:8200"
+    address            = "http://127.0.0.1:8200"
     # token is read from VAULT_TOKEN env
     # token              = ""
     disable_renewal    = "false"
@@ -430,9 +426,7 @@ EOF
     mount_path         = "transit/"
   }
   disable_mlock = true
-  disable_mlock = true
-  api_addr = "http://172.31.20.162:8200"
-  cluster_addr = "http://172.31.28.187:8201"
+  cluster_addr = "http://127.0.0.3:8201"
 EOF
 
   printf "\n%s" \
@@ -455,7 +449,7 @@ EOF
     tls_disable = true
   }
   seal "transit" {
-    address            = "http://172.31.20.162:8200"
+    address            = "http://127.0.0.1:8200"
     # token is read from VAULT_TOKEN env
     # token              = ""
     disable_renewal    = "false"
